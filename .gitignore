@@ -1,0 +1,15 @@
+
+.vs/AnalizadorLexico/v16/ipch/440610cac02056b9.ipch
+*.ipch
+*.lastbuildstate
+*.tlog
+*.pdb
+*.obj
+*.db
+*.pch
+*.ipdb
+*.iobj
+*.log
+*.recipe
+.vs/AnalizadorLexico/v14/.suo
+.vs/AnalizadorLexico/v16/.suo

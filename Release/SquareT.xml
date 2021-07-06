@@ -67,6 +67,7 @@
 <keyword> return </keyword>
 <symbol> ; </symbol>
 <symbol> } </symbol>
+<stringConstant> erro </stringConstant>
 <keyword> method </keyword>
 <keyword> void </keyword>
 <identifier> draw </identifier>
@@ -151,7 +152,7 @@
 <symbol> + </symbol>
 <identifier> size </identifier>
 <symbol> ) </symbol>
-<symbol> <= </symbol>
+<symbol> &lt; </symbol>
 <integerConstant> 254 </integerConstant>
 <symbol> ) </symbol>
 <symbol> &amp; </symbol>

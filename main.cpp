@@ -7,14 +7,15 @@
 int main(int argc, char* argv[])
 {
 	unsigned i = 0;
+	//Tokenizer Token();
 
-	if (argc > 1)
-		Tokenizer Token(argv[1]);
-	else
+	if (argc < 2) {
 		printf("inicializacao sem linha de comando\n");
+		return 0;
+	}
 
-	Tokenizer Token("Main.jack");
-	Tokenizer Token2("Square.jack");
+	Tokenizer Token(argv[1]);
+	//Tokenizer Token2("Square.jack");
 	printf("pressione quaquer tecla para sair\n");
 	i = getchar();
 	return 0;

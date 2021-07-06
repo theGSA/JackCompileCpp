@@ -13,3 +13,6 @@
 *.recipe
 .vs/AnalizadorLexico/v14/.suo
 .vs/AnalizadorLexico/v16/.suo
+*.db-shm
+*.db-wal
+*.opendb

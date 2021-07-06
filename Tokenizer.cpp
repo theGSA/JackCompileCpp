@@ -224,7 +224,7 @@ void Tokenizer::AnalizeLexica()
 	*aux = '\0';
 	m_stringfy = _strdup(buffer);
 
-	printf("%s\n", m_stringfy);
+	//printf("%s\n", m_stringfy);
 	aux = strtok(buffer, " ");
 	while (aux != NULL)
 	{
@@ -262,6 +262,7 @@ void Tokenizer::CriarXML()
 	fputs("<tokens>\n", arq);
 	for (unsigned int i = 0; i < m_tokens.size(); i++) {
 		fprintf(arq,"<%s> %s </%s>\n", tipos[(int)m_tokens.at(i).type],ParaSimbolo(m_tokens.at(i).nome), tipos[(int)m_tokens.at(i).type]);
+		printf("<%s> %s </%s>\n", tipos[(int)m_tokens.at(i).type],ParaSimbolo(m_tokens.at(i).nome), tipos[(int)m_tokens.at(i).type]);
 	}
 	fputs("</tokens>\n", arq);
 	fclose(arq);

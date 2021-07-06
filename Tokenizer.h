@@ -18,7 +18,7 @@ enum class TIPOS
 
 typedef struct
 {
-	char nome[256];
+	char nometoken[256];
 	TIPOS type;
 }Token;
 
@@ -34,7 +34,7 @@ class Tokenizer
 		std::vector <Token> m_tokens;
 		void Carregar();
 		void AnalizeLexica();
-		bool ECaracterAceito(char ch);
+		//bool ECaracterAceito(char ch);
 		bool ESimbolo(const char* str);
 		bool EKeyword(const char* str);
 		bool EIdentificador(const char* str);
@@ -44,7 +44,7 @@ class Tokenizer
 		const char* ParaSimbolo(const char* str);
 		bool EUmInteiroConstant(const char* str);
 		bool EUmStringConstant(const char* str);
-		void CheckSeEStringConstant(const char* str, char* dest);
+		void FormatarNomeDoToken(const char* str, char* dest);
 		char ObterProximoChar(FILE* const arq);
 		TIPOS ObterTipo(const char* str);
 };

@@ -36,7 +36,7 @@ const char* tipos[] =
 	"identifier",
 	"integerConstant",
 	"stringConstant",
-	"none",
+	"unknown",
 	NULL
 };
 
@@ -48,15 +48,15 @@ Tokenizer::Tokenizer(const char* nomearq):
 	Carregar();
 }
 
-bool Tokenizer::ECaracterAceito(char ch)
-{
-	char aceitos[] = "<> (){}[],.;\"'|\\:-+=?/*&%";
-
-	for (int i = 0; aceitos[i] != 0; i++)
-		if (ch == aceitos[i])
-			return true;
-	return false;
-}
+//bool Tokenizer::ECaracterAceito(char ch)
+//{
+//	char aceitos[] = "<> (){}[],.;\"'|\\:-+=?/*&%";
+//
+//	for (int i = 0; aceitos[i] != 0; i++)
+//		if (ch == aceitos[i])
+//			return true;
+//	return false;
+//}
 
 bool ETipoVariavel(const char* str)
 {
@@ -76,7 +76,6 @@ bool Tokenizer::ESimbolo(const char* str)
 	for (int i = 0; simbolos[i] != NULL; i++)
 		if (strcmp(simbolos[i], str) == 0)
 			return true;
-	
 	return false;
 }
 
@@ -90,17 +89,17 @@ bool Tokenizer::EKeyword(const char* str)
 
 bool Tokenizer::EIdentificador(const char* str)
 {
-	if (m_tokens.back().type == TIPOS::T_KEYWORDS && ETipoVariavel(m_tokens.back().nome)||
-		m_tokens.back().type == TIPOS::T_SYMBOLS && m_tokens.back().nome[0] == ',' ||
-		m_tokens.back().type == TIPOS::T_SYMBOLS && m_tokens.back().nome[0] == '.' ||
-		m_tokens.back().type == TIPOS::T_IDENTIFIER) {
+	if (m_tokens.size() > 0 && ((m_tokens.back().type == TIPOS::T_KEYWORDS && ETipoVariavel(m_tokens.back().nometoken)||
+		m_tokens.back().type == TIPOS::T_SYMBOLS && m_tokens.back().nometoken[0] == ',' ||
+		m_tokens.back().type == TIPOS::T_SYMBOLS && m_tokens.back().nometoken[0] == '.' ||
+		m_tokens.back().type == TIPOS::T_IDENTIFIER))) {
 		return true;
 	}
 	for (unsigned int i = 0; i < m_tokens.size(); i++) {
-		if (strcmp(m_tokens.at(i).nome, str) == 0)
+		if (strcmp(m_tokens.at(i).nometoken, str) == 0)
 		{
 			return m_tokens[i].type == TIPOS::T_IDENTIFIER ||
-				   m_tokens[i].type == TIPOS::T_SYMBOLS && m_tokens[i].nome[0] == ',';
+				   m_tokens[i].type == TIPOS::T_SYMBOLS && m_tokens[i].nometoken[0] == ',';
 		}
 	}
 	return false;
@@ -133,29 +132,20 @@ bool Tokenizer::EUmStringConstant(const char* str)
 	return str[0] == '"';
 }
 
-void Tokenizer::CheckSeEStringConstant(const char* str, char* dest)
+void Tokenizer::FormatarNomeDoToken(const char* str, char* dest)
 {
-	char* buffer = (char*)malloc(2048 * sizeof(char));
-
-	//buffer[0] = 0;
-	if (buffer != 0) {
-		if (str[0] == '"') {
-			if (str[strlen(str) - 1] == '\"')
-			{
-				strncpy(dest, str, strlen(str));
-			}
-			else {
-				sprintf(buffer, "%s %s\"", str, strtok(NULL, "\""));
-				strcpy(dest, buffer);
-			}
+	if (str[0] == '"') {
+		if (str[strlen(str) - 1] == '\"')
+		{
+			strncpy(dest, str, strlen(str));
 		}
-		else
-			strcpy(dest, str);
-		free(buffer);
+		else {
+			sprintf(dest, "%s %s\"", str, strtok(NULL, "\""));
+			//strcpy(dest, buffer);
+		}
 	}
-	else {
-		printf("não foi possivel alocar memoria\n");
-	}
+	else
+		strcpy(dest, str);
 }
 
 char Tokenizer::ObterProximoChar(FILE* const arq)
@@ -174,7 +164,7 @@ void Tokenizer::AnalizeLexica()
 	bool aspas = false;
 	char* aux;
 	char ultchar = 0;
-
+	int line = 0;
 	Token temp = {};
 
 	fseek(m_arq, 0L, SEEK_END);
@@ -199,8 +189,10 @@ void Tokenizer::AnalizeLexica()
 			}
 		}
 
-		if (ch == '\n' && comsimples) {
-			comsimples = false;
+		if (ch == '\n') {
+			if(comsimples)
+				comsimples = false;
+			line++;
 		}
 
 		if (commultiplo && (ch == '*')) {
@@ -212,11 +204,10 @@ void Tokenizer::AnalizeLexica()
 			}
 		}
 		
-		if (!comsimples && !commultiplo && ch != '\n' && ch != 13 && ch != '\t' &&/* (isalnum(ch) || ECaracterAceito(ch)) &&*/ ((ultchar != ' ' && (ch != ' ' || ch == ' ')) || (ultchar == ' ' && ch != ' '))) {
+		if (!comsimples && !commultiplo && ch != '\n' && ch != 13 && ch != '\t' && ((ultchar != ' ' && (ch != ' ' || ch == ' ')) || (ultchar == ' ' && ch != ' '))) {
 			if ((EDelimitador(ch) && ultchar != ' ') || (EDelimitador(ultchar) && ch != ' '))
 				*aux++ = ' ';
 			*aux++ = ch;
-			//printf("insere: (%c)(%d)\n", ch, ch);
 			ultchar = ch;
 		}
 		contar++;
@@ -228,8 +219,14 @@ void Tokenizer::AnalizeLexica()
 	aux = strtok(buffer, " ");
 	while (aux != NULL)
 	{
-		CheckSeEStringConstant(aux, temp.nome);
+		FormatarNomeDoToken(aux, temp.nometoken);
 		temp.type = ObterTipo(aux);
+
+		if (temp.type == TIPOS::T_NONE)
+		{
+			printf("simbolo '%s' não definido\n", temp.nometoken);
+			return;
+		}
 		m_tokens.push_back(temp);
 		aux = strtok(NULL, " ");
 	}
@@ -261,8 +258,8 @@ void Tokenizer::CriarXML()
 	free(buffer);
 	fputs("<tokens>\n", arq);
 	for (unsigned int i = 0; i < m_tokens.size(); i++) {
-		fprintf(arq,"<%s> %s </%s>\n", tipos[(int)m_tokens.at(i).type],ParaSimbolo(m_tokens.at(i).nome), tipos[(int)m_tokens.at(i).type]);
-		printf("<%s> %s </%s>\n", tipos[(int)m_tokens.at(i).type],ParaSimbolo(m_tokens.at(i).nome), tipos[(int)m_tokens.at(i).type]);
+		fprintf(arq,"<%s> %s </%s>\n", tipos[(int)m_tokens.at(i).type],ParaSimbolo(m_tokens.at(i).nometoken), tipos[(int)m_tokens.at(i).type]);
+		printf("<%s> %s </%s>\n", tipos[(int)m_tokens.at(i).type],ParaSimbolo(m_tokens.at(i).nometoken), tipos[(int)m_tokens.at(i).type]);
 	}
 	fputs("</tokens>\n", arq);
 	fclose(arq);

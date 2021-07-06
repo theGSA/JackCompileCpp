@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
 	Tokenizer Token(argv[1]);
 	//Tokenizer Token2("Square.jack");
 	printf("pressione quaquer tecla para sair\n");
-	i = getchar();
+	i = getchar();	
 	return 0;
 }
 

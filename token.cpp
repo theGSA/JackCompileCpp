@@ -69,12 +69,12 @@ KWDTP Token::GetKeywordType()
 }
 std::string Token::GetTokenName()
 {
-	return nometoken;
+	return std::string(ToSymbolName(nometoken.c_str()));
 }
 
 std::string Token::GetRealName()
 {
-	return std::string(ToSymbolName(nometoken.c_str())); 
+	return nometoken;
 }
 
 std::string Token::GetTypeName()
@@ -91,6 +91,17 @@ TYPE Token::GetTokenType(const char* str)
 	else if (IsIdentifier(str))		return TYPE::T_IDENTIFIER;
 
 	return TYPE::T_UNDEFINED;
+}
+
+bool Token::IsOp()
+{
+	std::string  op = "+-*/&|<>=";
+
+	for (int i = 0; op[i] != 0; i++) {
+		if (op.substr(i, 1) == GetRealName())
+			return true;
+	}
+	return false;
 }
 
 const char* Token::ToSymbolName(const char* str)

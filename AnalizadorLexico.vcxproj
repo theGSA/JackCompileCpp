@@ -145,6 +145,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="utils.h" />
     <ClInclude Include="LexerXML.h" />
     <ClInclude Include="Sintaxer.h" />
     <ClInclude Include="stdafx.h" />

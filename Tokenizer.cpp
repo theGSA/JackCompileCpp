@@ -9,20 +9,19 @@
 Tokenizer::Tokenizer(const char* nomearq):
 	m_filename(nomearq)
 {
-	//DeleteCaminho();
 	Load();
 }
 
-bool ETipoVariavel(const char* str)
-{
-	char* tipos[] = {"class","field","var", "int", "char", "boolean","do", "void", NULL};
-
-	for (int i = 0; tipos[i] != NULL; i++)
-		if (strcmp(str, tipos[i]) == 0)
-			return true;
-
-	return false;
-}
+//bool ETipoVariavel(const char* str)
+//{
+//	char* tipos[] = {"class","field","var", "int", "char", "boolean","do", "void", NULL};
+//
+//	for (int i = 0; tipos[i] != NULL; i++)
+//		if (strcmp(str, tipos[i]) == 0)
+//			return true;
+//
+//	return false;
+//}
 
 void Tokenizer::FormatTokenName(const char* str, char* dest)
 {
@@ -48,85 +47,7 @@ char Tokenizer::GetNextChar(/*FILE* const arq*/)
 	return c == EOF ? EOF : ungetc(c, m_arq);
 }
 
-/*void Tokenizer::LexicalAnalize()
-{
-	char ch;
-	int contar = 0;
-	char* buffer;
-	bool comsimples = false;
-	bool commultiplo = false;
-	bool aspas = false;
-	char* aux;
-	char ultchar = 0;
-	int line = 0;
-	Token temp = {};
 
-	fseek(m_arq, 0L, SEEK_END);
-	buffer = (char*)malloc(ftell(m_arq) * sizeof(char) + 1);
-	if (!buffer)
-	{
-		printf("não foi possivel alocar memoria\n");
-		return;
-	}
-	aux = buffer;
-
-	fseek(m_arq, 0L, SEEK_SET);
-	while ((ch = getc(m_arq)) != EOF)
-	{
-		if (ch == '/' || comsimples || commultiplo)
-		{
-			char tch = GetNextChar(m_arq);
-
-			if ( tch == '/' || tch == '*') {
-				if (tch == '/') comsimples = true;
-				else if (tch == '*')commultiplo = true;
-			}
-		}
-
-		if (ch == '\n') {
-			if(comsimples)
-				comsimples = false;
-			line++;
-		}
-
-		if (commultiplo && (ch == '*')) {
-			char tch = GetNextChar(m_arq);
-			if (tch == '/') {
-				commultiplo = comsimples = false;
-				ch = getc(m_arq);
-				ch = getc(m_arq);
-			}
-		}
-		
-		if (!comsimples && !commultiplo && ch != '\n' && ch != 13 && ch != '\t' && ((ultchar != ' ' && (ch != ' ' || ch == ' ')) || (ultchar == ' ' && ch != ' '))) {
-			if ((IsSymbol(ch) && ultchar != ' ') || (IsSymbol(ultchar) && ch != ' '))
-				*aux++ = ' ';
-			*aux++ = ch;
-			ultchar = ch;
-		}
-		contar++;
-	}
-	*aux = '\0';
-	m_stringfy = _strdup(buffer);
-
-	//printf("%s\n", m_stringfy);
-	aux = strtok(buffer, " ");
-	while (aux != NULL)
-	{
-		FormatTokenName(aux, temp.nometoken);
-		temp.type = GetType(aux);
-
-		if (temp.type == TYPE::T_UNDEFINED)
-		{
-			printf("simbolo '%s' não definido\n", temp.nometoken);
-			return;
-		}
-		m_tokens.push_back(temp);
-		aux = strtok(NULL, " ");
-	}
-	CreateXML();
-	free(buffer);
-}*/
 
 void Tokenizer::CreateXML()
 {
@@ -159,11 +80,6 @@ void Tokenizer::CreateXML()
 	fclose(arq);
 }
 
-
-
-
-
-
 Token Tokenizer::GetNextToken()
 {
 	char ch;
@@ -175,7 +91,6 @@ Token Tokenizer::GetNextToken()
 	char* aux;
 	char ultchar = 0;
 	int line = 0;
-	//Token temp();
 
 	buffer = (char*)malloc(2048 * sizeof(char) + 1);
 	if (!buffer)
@@ -183,9 +98,7 @@ Token Tokenizer::GetNextToken()
 		printf("não foi possivel alocar memoria\n");
 		return Token();
 	}
-	/*fseek(m_arq, 0L, SEEK_END);
 
-	fseek(m_arq, 0L, SEEK_SET);*/
 	aux = buffer;
 	while ((ch = getc(m_arq)) != EOF)
 	{
@@ -224,7 +137,6 @@ Token Tokenizer::GetNextToken()
 
 		if (!comsimples && !commultiplo && ch != '\n' && ch != '\r' && ch != '\t') {
 			*aux++ = ch;
-			//ultchar = ch;
 			if (ch == '\"') {
 				while ((ch = getc(m_arq)) != EOF && ch != '\"')
 					*aux++ = ch;
@@ -234,8 +146,7 @@ Token Tokenizer::GetNextToken()
 			{
 				*aux = 0;
 				Token temp = Token(buffer);
-				/*if (m_currentToken.GetKeyword().IsClassVarDec())
-					temp.GetType(TYPE::)*/
+
 				m_currentToken = temp;
 				free(buffer);
 				return m_currentToken;

@@ -101,8 +101,8 @@ public:
 		return type;
 	};
 	bool IsSymbol() { return TYPE::T_SYMBOLS == type; }
-	bool IsTerm() { return type == TYPE::T_INT_CONST || type == TYPE::T_STRING_CONST || m_keyword.IsKeywordConstant() || type == TYPE::T_IDENTIFIER || IsOpUnary() || nometoken == "("; }
-	bool IsOpUnary() { return nometoken == "~" || nometoken == "=" || nometoken == ">" || nometoken == "<"; }
+	bool IsTerm() { return type == TYPE::T_INT_CONST || type == TYPE::T_STRING_CONST || m_keyword.IsKeywordConstant() || type == TYPE::T_IDENTIFIER || IsOpUnary() || nometoken == "(" || nometoken == "[" || IsOp(); }
+	bool IsOpUnary() { return nometoken == "~" || nometoken == "-"; }
 	virtual std::string GetTokenName();
 	virtual std::string GetRealName();
 	virtual std::string GetTypeName();
@@ -114,6 +114,7 @@ public:
 	std::string GetTagXML() {
 		return "<"+GetTypeName() + "> " + GetTokenName() + " </" + GetTypeName()+">";
 	}
+	bool IsOp();
 protected:
 
 	bool IsSymbol(char ch);

@@ -1,12 +1,13 @@
 #include "stdafx.h"
 #include "LexerXML.h"
+#include "utils.h"
 
 Lexer::Lexer(const char* filename) :
 	m_filename(filename)
 {
 	Tokenizer token(filename);
-	FILE* arq = fopen(GetXmlFileName().c_str(), "w");
-	printf("criando %s\n", GetXmlFileName().c_str());
+	FILE* arq = fopen(Utils::GetXmlFileTokenName(filename).c_str(), "w");
+	printf("criando %s\n", Utils::GetXmlFileTokenName(filename).c_str());
 
 	if (arq) {
 		fputs("<tokens>\n", arq);
@@ -18,23 +19,6 @@ Lexer::Lexer(const char* filename) :
 		fputs("</tokens>\n", arq);
 		fclose(arq);
 	}
-}
-
-std::string Lexer::GetFileBaseName()
-{
-	int pos = 0;
-	for (unsigned int i = 0; i < m_filename.length(); i++)
-		if (m_filename.c_str()[i] == '\\')
-			pos = i + 1;
-
-	return m_filename.substr(pos, m_filename.length());
-}
-
-std::string Lexer::GetXmlFileName()
-{
-	std::string temp = GetFileBaseName();
-
-	return temp.replace(temp.rfind(".jack"), 6, "T.xml");
 }
 
 Lexer::~Lexer()

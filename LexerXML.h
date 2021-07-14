@@ -7,8 +7,6 @@ class Lexer
 {
 public:
 	Lexer(const char* filename);
-	std::string GetFileBaseName();
-	std::string GetXmlFileName();
 	~Lexer();
 
 private:

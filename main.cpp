@@ -11,15 +11,15 @@ int main(int argc, char* argv[])
 	unsigned i = 0;
 	//Tokenizer Token();
 
-	/*if (argc < 2) {
+	if (argc < 2) {
 		printf("inicializacao sem linha de comando\n");
 		return 0;
-	}*/
-	char* file = "Main.jack";
+	}
+	//char* file = "SquareGame.jack";
 	//Lexer lexer(argv[1]);
-	Lexer lexer(file);
+	Lexer lexer(argv[1]);
 	//Tokenizer Token2("Square.jack");
-	Sintaxer  sintaxer(file);
+	Sintaxer  sintaxer(argv[1]);
 	printf("pressione quaquer tecla para sair\n");
 	i = getchar();	
 	return 0;

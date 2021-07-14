@@ -3,64 +3,19 @@
 #include "Tokenizer.h"
 
 
-const char* keywords[] =
-{
-	"class",
-	"int",
-	"boolean",
-	"method",
-	"function",
-	"constructor", 
-	"this",
-	"char",
-	"void",
-	"var",
-	"static",
-	"let",
-	"field",
-	"do",
-	"while",
-	"if",
-	"else",
-	"true",
-	"return",
-	"false",
-	"null",
-	NULL,
-};
 
-const char* tipos[] =
-{
-	"symbol",
-	"keyword",
-	"identifier",
-	"integerConstant",
-	"stringConstant",
-	"unknown",
-	NULL
-};
 
 
 Tokenizer::Tokenizer(const char* nomearq):
-	m_nomearq(nomearq)
+	m_filename(nomearq)
 {
-	DeleteCaminho();
-	Carregar();
+	//DeleteCaminho();
+	Load();
 }
-
-//bool Tokenizer::ECaracterAceito(char ch)
-//{
-//	char aceitos[] = "<> (){}[],.;\"'|\\:-+=?/*&%";
-//
-//	for (int i = 0; aceitos[i] != 0; i++)
-//		if (ch == aceitos[i])
-//			return true;
-//	return false;
-//}
 
 bool ETipoVariavel(const char* str)
 {
-	char* tipos[] = {"class","var", "int", "char", "boolean","do", "void", NULL};
+	char* tipos[] = {"class","field","var", "int", "char", "boolean","do", "void", NULL};
 
 	for (int i = 0; tipos[i] != NULL; i++)
 		if (strcmp(str, tipos[i]) == 0)
@@ -69,70 +24,7 @@ bool ETipoVariavel(const char* str)
 	return false;
 }
 
-bool Tokenizer::ESimbolo(const char* str)
-{
-	const char* simbolos[] = {"{", "}", "(", ")","]", "[", "<", ">", "=","!=", "==", "<=", ">=", ".", ";", ",", "*", "-", "+", "/", "|", "&", NULL};
-	
-	for (int i = 0; simbolos[i] != NULL; i++)
-		if (strcmp(simbolos[i], str) == 0)
-			return true;
-	return false;
-}
-
-bool Tokenizer::EKeyword(const char* str)
-{
-	for (int i = 0; keywords[i] != NULL; i++)
-		if (strcmp(keywords[i], str) == 0)
-			return true;
-	return false;
-}
-
-bool Tokenizer::EIdentificador(const char* str)
-{
-	if (m_tokens.size() > 0 && ((m_tokens.back().type == TIPOS::T_KEYWORDS && ETipoVariavel(m_tokens.back().nometoken)||
-		m_tokens.back().type == TIPOS::T_SYMBOLS && m_tokens.back().nometoken[0] == ',' ||
-		m_tokens.back().type == TIPOS::T_SYMBOLS && m_tokens.back().nometoken[0] == '.' ||
-		m_tokens.back().type == TIPOS::T_IDENTIFIER))) {
-		return true;
-	}
-	for (unsigned int i = 0; i < m_tokens.size(); i++) {
-		if (strcmp(m_tokens.at(i).nometoken, str) == 0)
-		{
-			return m_tokens[i].type == TIPOS::T_IDENTIFIER ||
-				   m_tokens[i].type == TIPOS::T_SYMBOLS && m_tokens[i].nometoken[0] == ',';
-		}
-	}
-	return false;
-}
-
-bool Tokenizer::EDelimitador(char ch)
-{
-	char delimitador[] = "(){}[],.;-";
-
-	for (int i = 0; delimitador[i] != 0; i++)
-		if (ch == delimitador[i])
-			return true;
-	return false;
-
-}
-
-TIPOS Tokenizer::ObterTipo(const char* str)
-{
-	if (EKeyword(str))					return TIPOS::T_KEYWORDS;
-	else if (ESimbolo(str))				return TIPOS::T_SYMBOLS;
-	else if (EUmInteiroConstant(str))	return TIPOS::T_INT_CONST;
-	else if (EUmStringConstant(str))	return TIPOS::T_STRING_CONST;
-	else if (EIdentificador(str))		return TIPOS::T_IDENTIFIER;
-	
-	return TIPOS::T_NONE;
-}
-
-bool Tokenizer::EUmStringConstant(const char* str)
-{
-	return str[0] == '"';
-}
-
-void Tokenizer::FormatarNomeDoToken(const char* str, char* dest)
+void Tokenizer::FormatTokenName(const char* str, char* dest)
 {
 	if (str[0] == '"') {
 		if (str[strlen(str) - 1] == '\"')
@@ -148,13 +40,15 @@ void Tokenizer::FormatarNomeDoToken(const char* str, char* dest)
 		strcpy(dest, str);
 }
 
-char Tokenizer::ObterProximoChar(FILE* const arq)
+char Tokenizer::GetNextChar(/*FILE* const arq*/)
 {
-	const char c = getc(arq);
-	return c == EOF ? EOF : ungetc(c, arq);
+	
+	const char c = getc(m_arq);
+	//return c;
+	return c == EOF ? EOF : ungetc(c, m_arq);
 }
 
-void Tokenizer::AnalizeLexica()
+/*void Tokenizer::LexicalAnalize()
 {
 	char ch;
 	int contar = 0;
@@ -181,7 +75,7 @@ void Tokenizer::AnalizeLexica()
 	{
 		if (ch == '/' || comsimples || commultiplo)
 		{
-			char tch = ObterProximoChar(m_arq);
+			char tch = GetNextChar(m_arq);
 
 			if ( tch == '/' || tch == '*') {
 				if (tch == '/') comsimples = true;
@@ -196,7 +90,7 @@ void Tokenizer::AnalizeLexica()
 		}
 
 		if (commultiplo && (ch == '*')) {
-			char tch = ObterProximoChar(m_arq);
+			char tch = GetNextChar(m_arq);
 			if (tch == '/') {
 				commultiplo = comsimples = false;
 				ch = getc(m_arq);
@@ -205,7 +99,7 @@ void Tokenizer::AnalizeLexica()
 		}
 		
 		if (!comsimples && !commultiplo && ch != '\n' && ch != 13 && ch != '\t' && ((ultchar != ' ' && (ch != ' ' || ch == ' ')) || (ultchar == ' ' && ch != ' '))) {
-			if ((EDelimitador(ch) && ultchar != ' ') || (EDelimitador(ultchar) && ch != ' '))
+			if ((IsSymbol(ch) && ultchar != ' ') || (IsSymbol(ultchar) && ch != ' '))
 				*aux++ = ' ';
 			*aux++ = ch;
 			ultchar = ch;
@@ -219,10 +113,10 @@ void Tokenizer::AnalizeLexica()
 	aux = strtok(buffer, " ");
 	while (aux != NULL)
 	{
-		FormatarNomeDoToken(aux, temp.nometoken);
-		temp.type = ObterTipo(aux);
+		FormatTokenName(aux, temp.nometoken);
+		temp.type = GetType(aux);
 
-		if (temp.type == TIPOS::T_NONE)
+		if (temp.type == TYPE::T_UNDEFINED)
 		{
 			printf("simbolo '%s' não definido\n", temp.nometoken);
 			return;
@@ -230,18 +124,18 @@ void Tokenizer::AnalizeLexica()
 		m_tokens.push_back(temp);
 		aux = strtok(NULL, " ");
 	}
-	CriarXML();
+	CreateXML();
 	free(buffer);
-}
+}*/
 
-void Tokenizer::CriarXML()
+void Tokenizer::CreateXML()
 {
 	FILE* arq;
-	char* buffer = _strdup(m_nomearq.c_str());
+	char* buffer = _strdup(m_filename.c_str());
 	char* aux = strstr(buffer, ".jack");
 
 	if (aux == 0) {
-		printf("inconsistencia no nome do arquivo (%s)\n", m_nomearq.c_str());
+		printf("inconsistencia no nome do arquivo (%s)\n", m_filename.c_str());
 		return;
 	}
 	else
@@ -258,59 +152,120 @@ void Tokenizer::CriarXML()
 	free(buffer);
 	fputs("<tokens>\n", arq);
 	for (unsigned int i = 0; i < m_tokens.size(); i++) {
-		fprintf(arq,"<%s> %s </%s>\n", tipos[(int)m_tokens.at(i).type],ParaSimbolo(m_tokens.at(i).nometoken), tipos[(int)m_tokens.at(i).type]);
-		printf("<%s> %s </%s>\n", tipos[(int)m_tokens.at(i).type],ParaSimbolo(m_tokens.at(i).nometoken), tipos[(int)m_tokens.at(i).type]);
+		//fprintf(arq,"<%s> %s </%s>\n", tipos[(int)m_tokens.at(i).type],ToSymbolName(m_tokens.at(i).nometoken.c_str()), tipos[(int)m_tokens.at(i).type]);
+		//printf("<%s> %s </%s>\n", tipos[(int)m_tokens.at(i).type],ToSymbolName(m_tokens.at(i).nometoken.c_str()), tipos[(int)m_tokens.at(i).type]);
 	}
 	fputs("</tokens>\n", arq);
 	fclose(arq);
 }
-void Tokenizer::DeleteCaminho()
-{
-	int pos = 0;
-	for (unsigned int i = 0; i < m_nomearq.length(); i++)
-		if (m_nomearq.c_str()[i] == '\\')
-			pos = i+1;
 
-	m_nomearq = m_nomearq.substr(pos, m_nomearq.length());
-}
-const char* Tokenizer::ParaSimbolo(const char* str)
-{
-	char buffer[2058] = "";
 
-	if (strcmp(str, "<") == 0) return "&lt;";
-	else if (strcmp(str, ">") == 0) return "&gt;";
-	else if (strcmp(str, "&") == 0) return "&amp;";
-	else if (EUmStringConstant(str)) {
-		strncpy(buffer, str + 1, strlen(str) - 2);
-		return buffer;
+
+
+
+
+Token Tokenizer::GetNextToken()
+{
+	char ch;
+	int contar = 0;
+	char* buffer;
+	bool comsimples = false;
+	bool commultiplo = false;
+	bool aspas = false;
+	char* aux;
+	char ultchar = 0;
+	int line = 0;
+	//Token temp();
+
+	buffer = (char*)malloc(2048 * sizeof(char) + 1);
+	if (!buffer)
+	{
+		printf("não foi possivel alocar memoria\n");
+		return Token();
 	}
-	return str;
-}
-bool Tokenizer::EUmInteiroConstant(const char* str)
-{
-	for (int i = 0; str[i] != 0; i++)
-		if (str[i] < '0' || str[i] > '9')
-			return false;
+	/*fseek(m_arq, 0L, SEEK_END);
 
-	return true;
+	fseek(m_arq, 0L, SEEK_SET);*/
+	aux = buffer;
+	while ((ch = getc(m_arq)) != EOF)
+	{
+		if (ch == ' ')
+		{
+			while ((ch = getc(m_arq)) != EOF && ch == ' ')
+			{
+
+			}
+		}
+		if (ch == '/' || comsimples || commultiplo)
+		{
+			char ant = ch;
+			char tch = GetNextChar();
+
+			if (tch == '/' || tch == '*') {
+				if (tch == '/') comsimples = true;
+				else if (tch == '*')commultiplo = true;
+			}
+		}
+
+		if (ch == '\n') {
+			if (comsimples)
+				comsimples = false;
+			line++;
+		}
+
+		if (commultiplo && (ch == '*')) {
+			char tch = GetNextChar();
+			if (tch == '/') {
+				commultiplo = comsimples = false;
+				ch = getc(m_arq);
+				ch = getc(m_arq);
+			}
+		}
+
+		if (!comsimples && !commultiplo && ch != '\n' && ch != '\r' && ch != '\t') {
+			*aux++ = ch;
+			//ultchar = ch;
+			if (ch == '\"') {
+				while ((ch = getc(m_arq)) != EOF && ch != '\"')
+					*aux++ = ch;
+				*aux++ = ch;
+			}
+			if (ch != EOF && (ch == '\"' || GetNextChar() == ' ' || IsSymbol(GetNextChar()) || IsSymbol(ch)))
+			{
+				*aux = 0;
+				Token temp = Token(buffer);
+				/*if (m_currentToken.GetKeyword().IsClassVarDec())
+					temp.GetType(TYPE::)*/
+				m_currentToken = temp;
+				free(buffer);
+				return m_currentToken;
+			}
+		}
+		contar++;
+	}
+	
+	return Token();
 }
-void Tokenizer::Carregar()
+
+void Tokenizer::Load()
 {
 
-	if (!strstr(m_nomearq.c_str(), ".jack")) {
-		printf("não pode carregar o arquivo (%s)! não é um .jack\n", m_nomearq.c_str());
+	if (!strstr(m_filename.c_str(), ".jack")) {
+		printf("não pode carregar o arquivo (%s)! não é um .jack\n", m_filename.c_str());
 		return;
 	}
 	else {
-		m_arq = fopen(m_nomearq.c_str(), "rb");
+		m_arq = fopen(m_filename.c_str(), "rb");
 		if (!m_arq)
 		{
-			printf("o arquivo (%s) não existe\n", m_nomearq.c_str());
+			printf("o arquivo (%s) não existe\n", m_filename.c_str());
 			return;
 		}
 		else {
-			printf("arquivo (%s) carregado com sucesso\n", m_nomearq.c_str());
-			AnalizeLexica();
+			printf("arquivo (%s) carregado com sucesso\n", m_filename.c_str());
+			LexicalAnalize();
 		}
 	}
 }
+
+

@@ -27,6 +27,15 @@
     <ClInclude Include="Tokenizer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LexerXML.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="token.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Sintaxer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -36,6 +45,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Tokenizer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LexerXML.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="token.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Sintaxer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

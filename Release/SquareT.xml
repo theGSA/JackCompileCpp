@@ -67,7 +67,6 @@
 <keyword> return </keyword>
 <symbol> ; </symbol>
 <symbol> } </symbol>
-<stringConstant> erro </stringConstant>
 <keyword> method </keyword>
 <keyword> void </keyword>
 <identifier> draw </identifier>

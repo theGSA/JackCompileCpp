@@ -3,49 +3,40 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "token.h"
 
 
-enum class TIPOS
-{
-	T_SYMBOLS,
-	T_KEYWORDS,
-	T_IDENTIFIER,
-	T_INT_CONST,
-	T_STRING_CONST,
-	T_NONE,
-};
 
-
-typedef struct
-{
-	char nometoken[256];
-	TIPOS type;
-}Token;
-
-
-class Tokenizer
+class Tokenizer: public Token
 {
 	public:
-		Tokenizer(const char* nomearq);
+		Tokenizer():
+			m_arq(NULL)
+		{};
+		Tokenizer(const char* filename);
+		virtual ~Tokenizer() {};
+		Token GetNextToken();
+		//TYPE GetTokenType(const char* str);
+
+		Token GetCurToken() { return m_currentToken; };
+		std::string GetTokenName() override { return std::string(ToSymbolName(m_currentToken.nometoken.c_str())); };
+		std::string GetRealName() override { return m_currentToken.nometoken; };
+		std::string GetTypeName() override { return std::string(tipos[(int)m_currentToken.GetType()]);};
+		TYPE GetType() { return m_currentToken.GetType(); };
 	private:
-		std::string m_nomearq;
+		Token m_currentToken;
+		std::string m_filename;
 		FILE* m_arq;
-		char* m_stringfy;
+		//char* m_stringfy;
+
 		std::vector <Token> m_tokens;
-		void Carregar();
-		void AnalizeLexica();
-		//bool ECaracterAceito(char ch);
-		bool ESimbolo(const char* str);
-		bool EKeyword(const char* str);
-		bool EIdentificador(const char* str);
-		bool EDelimitador(char ch);
-		void CriarXML();
-		void DeleteCaminho();
-		const char* ParaSimbolo(const char* str);
-		bool EUmInteiroConstant(const char* str);
-		bool EUmStringConstant(const char* str);
-		void FormatarNomeDoToken(const char* str, char* dest);
-		char ObterProximoChar(FILE* const arq);
-		TIPOS ObterTipo(const char* str);
+		void Load();
+		void LexicalAnalize() {};
+		void CreateXML();
+
+		//const char* ToSymbolName(const char* str);
+		void FormatTokenName(const char* str, char* dest);
+		char GetNextChar(/*FILE* const arq*/);
+
 };
 

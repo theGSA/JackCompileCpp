@@ -1,41 +1,55 @@
 #include "stdafx.h"
-#include "Sintaxer.h"
+#include "CompileEngine.h"
 #include "utils.h"
 
 //int count = 0;
-Sintaxer::Sintaxer():
+CompilationEngine::CompilationEngine():
 	m_output(NULL),
-	tokenizer(NULL)
+	tokenizer(NULL),
+	m_spaces(0)
 {
 }
 
-Sintaxer::Sintaxer(std::string filename)
+CompilationEngine::CompilationEngine(std::string filename):
+	m_spaces(0),
+	m_filename(filename)
 {
 	m_output = fopen(Utils::GetXmlFileName(filename).c_str(), "w");
 	tokenizer = new Tokenizer(filename.c_str());
 	
-	while(tokenizer->GetNextToken().IsValid())
+	/*while(tokenizer->GetNextToken().IsValid())
 		if(tokenizer->GetCurToken().GetKeyword().Get() == KWDTP::KCLASS)
 			CompileClass();
 
+	fclose(m_output);*/
+	Compile();
+}
+
+void CompilationEngine::Compile()
+{
+	if (!m_output) {
+		printf("nao pode criar o arquivo (%s)\n", Utils::GetXmlFileName(m_filename).c_str());
+		return;
+	}
+	while (tokenizer->GetNextToken().IsValid()) {
+		if (tokenizer->GetCurToken().GetKeyword().Get() == KWDTP::KCLASS) {
+			CompileClass();
+		}
+	}
 	fclose(m_output);
 }
 
-Sintaxer::~Sintaxer()
+CompilationEngine::~CompilationEngine()
 {
 	fclose(m_output);
 	delete tokenizer;
 }
 
-void Sintaxer::CompileClass()
+void CompilationEngine::CompileClass()
 {
 	const char* classTemplate[] = { "class", "className" ,"{", "classVarDec", "subroutineDec","}", NULL };
-	int i = 0;
 
-
-	//while (classTemplate[i++] != NULL)
-	//{
-	WriteFile("<class>");
+	openXMLTag("<class>");
 	if (tokenizer->GetCurToken().GetKeyword().Get() == KWDTP::KCLASS)
 	{
 		WriteFile(tokenizer->GetCurToken().GetTagXML());
@@ -45,7 +59,6 @@ void Sintaxer::CompileClass()
 		{
 			WriteFile(tokenizer->GetCurToken().GetTagXML());
 			tokenizer->GetNextToken();
-			i++;
 			if (strcmp(tokenizer->GetRealName().c_str(), "{") == 0)
 			{
 				WriteFile(tokenizer->GetCurToken().GetTagXML());
@@ -69,18 +82,17 @@ void Sintaxer::CompileClass()
 		printf("%s nao é uma classe\n", tokenizer->GetTokenName().c_str());
 		return;
 	}
-	//}
-	WriteFile("</class>");
-	//fclose(m_output);
+	
+	closeXMLTag("</class>");
 }
 
-void Sintaxer::CompileClassVarDec()
+void CompilationEngine::CompileClassVarDec()
 {
 	//( 'static' | 'field' ) type varName ( ',' varName)* ';'
 	
 	while (tokenizer->GetNextToken().GetKeyword().IsClassVarDec())
 	{
-		WriteFile("<classVarDec>");
+		openXMLTag("<classVarDec>");
 		WriteFile(tokenizer->GetCurToken().GetTagXML());
 
 		if (tokenizer->GetNextToken().GetKeyword().IsVarType() || tokenizer->GetCurToken().GetType() == TYPE::T_IDENTIFIER) {
@@ -105,48 +117,29 @@ void Sintaxer::CompileClassVarDec()
 				}
 			}
 			else {
-				//to do
 				printf("esperado um identificador\n");
 				return;
 			}
 		}
-		WriteFile("</classVarDec>");
+		closeXMLTag("</classVarDec>");
 	}
 }
 
-void Sintaxer::CompileSubroutine()
+void CompilationEngine::CompileSubroutine()
 {	
 	"('constructor' | 'function' | 'method') ('void' | type) subroutineName '(' parameterList ')' subroutineBody";
 
-	//tokenizer->GetNextToken();
-		//tokenizer->dump();
+
 	while (tokenizer->GetCurToken().GetKeyword().IsSubroutine())
 	{
-		WriteFile("<subroutineDec>");
+		openXMLTag("<subroutineDec>");
 		if (tokenizer->GetCurToken().GetKeyword().Get() == KWDTP::KCONSTRUCTOR)
 		{
 			WriteFile(tokenizer->GetCurToken().GetTagXML());
-			tokenizer->GetNextToken();
-			if (tokenizer->GetCurToken().GetType() == TYPE::T_IDENTIFIER)
+			if (tokenizer->GetNextToken().GetType() == TYPE::T_IDENTIFIER)
 			{
 				WriteFile(tokenizer->GetCurToken().GetTagXML());
-				tokenizer->GetNextToken();
-				if (tokenizer->GetCurToken().GetType() == TYPE::T_IDENTIFIER) {
-					WriteFile(tokenizer->GetCurToken().GetTagXML());
-					tokenizer->GetNextToken();
-					if (tokenizer->GetTokenName() == "(")
-					{
-						WriteFile(tokenizer->GetCurToken().GetTagXML());
-						CompileParameterList();
-						//WriteFile("next " + tokenizer->GetTokenName());
-
-						if (tokenizer->GetTokenName() == ")")
-						{
-							WriteFile(tokenizer->GetCurToken().GetTagXML());
-							CompileSubroutineBody();
-						}
-					}
-				}
+				CompileSubroutineParameters();
 			}
 		}
 		else if (tokenizer->GetCurToken().GetKeyword().Get() == KWDTP::KFUNCTION)
@@ -155,20 +148,7 @@ void Sintaxer::CompileSubroutine()
 			if (tokenizer->GetNextToken().GetKeyword().Get() == KWDTP::KVOID)
 			{
 				WriteFile(tokenizer->GetCurToken().GetTagXML());
-				if (tokenizer->GetNextToken().GetType() == TYPE::T_IDENTIFIER)
-				{
-					WriteFile(tokenizer->GetCurToken().GetTagXML());
-					if (tokenizer->GetNextToken().GetTokenName() == "(")
-					{
-						WriteFile(tokenizer->GetCurToken().GetTagXML());
-						CompileParameterList();
-						if (tokenizer->GetTokenName() == ")")
-						{
-							WriteFile(tokenizer->GetCurToken().GetTagXML());
-							CompileSubroutineBody();
-						}
-					}
-				}
+				CompileSubroutineParameters();
 			}
 		}
 		else if (tokenizer->GetCurToken().GetKeyword().Get() == KWDTP::KMETHOD)
@@ -177,37 +157,42 @@ void Sintaxer::CompileSubroutine()
 			if (tokenizer->GetNextToken().GetKeyword().Get() == KWDTP::KVOID)
 			{
 				WriteFile(tokenizer->GetCurToken().GetTagXML());
-				if (tokenizer->GetNextToken().GetType() == TYPE::T_IDENTIFIER)
-				{
-					WriteFile(tokenizer->GetCurToken().GetTagXML());
-					if (tokenizer->GetNextToken().GetTokenName() == "(")
-					{
-						WriteFile(tokenizer->GetCurToken().GetTagXML());
-						CompileParameterList();
-						if (tokenizer->GetTokenName() == ")")
-						{
-							WriteFile(tokenizer->GetCurToken().GetTagXML());
-							CompileSubroutineBody();
-						}
-					}
-				}
+				CompileSubroutineParameters();
 			}
 		}
-		WriteFile("</subroutineDec>");
+		closeXMLTag("</subroutineDec>");
 		tokenizer->GetNextToken();
 	}
 	
 }
 
-void Sintaxer::CompileSubroutineBody()
+void CompilationEngine::CompileSubroutineParameters()
+{
+	if (tokenizer->GetNextToken().GetType() == TYPE::T_IDENTIFIER)
+	{
+		WriteFile(tokenizer->GetCurToken().GetTagXML());
+		if (tokenizer->GetNextToken().GetTokenName() == "(")
+		{
+			WriteFile(tokenizer->GetCurToken().GetTagXML());
+			CompileParameterList();
+			if (tokenizer->GetTokenName() == ")")
+			{
+				WriteFile(tokenizer->GetCurToken().GetTagXML());
+				CompileSubroutineBody();
+			}
+		}
+	}
+}
+
+void CompilationEngine::CompileSubroutineBody()
 {
 	tokenizer->GetNextToken();
-	WriteFile("<subroutineBody>");
+	openXMLTag("<subroutineBody>");
 	if (tokenizer->GetCurToken().GetTokenName() == "{")
 	{
 		WriteFile(tokenizer->GetCurToken().GetTagXML());
 		tokenizer->GetNextToken();
-		while (true)
+		while (tokenizer->GetCurToken().IsValid())
 		{
 			if (tokenizer->GetCurToken().GetKeyword().IsStatement())
 				CompileStatements();
@@ -219,13 +204,13 @@ void Sintaxer::CompileSubroutineBody()
 			}
 		}
 	}
-	WriteFile("</subroutineBody>");
+	closeXMLTag("</subroutineBody>");
 }
 
-void Sintaxer::CompileParameterList()
+void CompilationEngine::CompileParameterList()
 {
 	//tokenizer->GetNextToken();
-	WriteFile("<parameterList>");
+	openXMLTag("<parameterList>");
 	while (tokenizer->GetNextToken().IsValid() && tokenizer->GetCurToken().GetKeyword().IsVarType() && tokenizer->GetCurToken().GetTokenName() != ")")
 	{
 		WriteFile(tokenizer->GetCurToken().GetTagXML());
@@ -234,23 +219,20 @@ void Sintaxer::CompileParameterList()
 			if (tokenizer->GetNextToken().GetTokenName() == ",")
 			{
 				WriteFile(tokenizer->GetCurToken().GetTagXML());
-
 			}
 			else if(tokenizer->GetCurToken().GetTokenName() == ")") {
-				//WriteFile(tokenizer->GetCurToken().GetTagXML());
 				break;
 			}
 		}
 	}
-	WriteFile("</parameterList>");
-	//if(tokenizer->GetCurToken().GetType() == KWDTP::)
+	closeXMLTag("</parameterList>");
 }
 
-void Sintaxer::CompileVarDec()
+void CompilationEngine::CompileVarDec()
 {
 	while (tokenizer->GetCurToken().GetKeyword().Get() == KWDTP::KVAR)
 	{
-		WriteFile("<varDec>");
+		openXMLTag("<varDec>");
 		WriteFile(tokenizer->GetCurToken().GetTagXML());
 		if (tokenizer->GetNextToken().GetKeyword().IsVarType() || tokenizer->GetCurToken().GetType() == TYPE::T_IDENTIFIER) {
 			WriteFile(tokenizer->GetCurToken().GetTagXML());
@@ -259,44 +241,54 @@ void Sintaxer::CompileVarDec()
 				WriteFile(tokenizer->GetCurToken().GetTagXML());
 				if (tokenizer->GetNextToken().GetTokenName() == ";") {
 					WriteFile(tokenizer->GetCurToken().GetTagXML());
-					//tokenizer->GetNextToken();
-					//tokenizer->GetCurToken().dump();
 				}
 				else if (tokenizer->GetCurToken().GetTokenName() == ",") {
 					WriteFile(tokenizer->GetCurToken().GetTagXML());
-					//tokenizer->GetNextToken();
 				}
 			}
 		}
-		WriteFile("</varDec>");
+		closeXMLTag("</varDec>");
 	}
 }
-void Sintaxer::CompileStatements()
+void CompilationEngine::CompileStatements()
 {
-	//if (tokenizer->GetCurToken().GetKeyword().IsStatement())
-	//{
-		WriteFile("<statements>");
-			tokenizer->GetCurToken().dump();
-		while (tokenizer->GetCurToken().GetKeyword().IsStatement()) {
-			if (tokenizer->GetCurToken().GetKeyword().Get() == KWDTP::KLET)
-				CompileLet();
-			else if (tokenizer->GetCurToken().GetKeyword().Get() == KWDTP::KIF)
-				CompileIf();
-			else if (tokenizer->GetCurToken().GetKeyword().Get() == KWDTP::KWHILE)
-				CompileWhile();
-			else if (tokenizer->GetCurToken().GetKeyword().Get() == KWDTP::KDO)
-				CompileDo();
-			else if (tokenizer->GetCurToken().GetKeyword().Get() == KWDTP::KRETURN)
-				CompileReturn();
-			//tokenizer->GetNextToken();
-		}
-		WriteFile("</statements>");
-	//}
+	openXMLTag("<statements>");
+	while (tokenizer->GetCurToken().GetKeyword().IsStatement()) {
+		if (tokenizer->GetCurToken().GetKeyword().Get() == KWDTP::KLET)
+			CompileLet();
+		else if (tokenizer->GetCurToken().GetKeyword().Get() == KWDTP::KIF)
+			CompileIf();
+		else if (tokenizer->GetCurToken().GetKeyword().Get() == KWDTP::KWHILE)
+			CompileWhile();
+		else if (tokenizer->GetCurToken().GetKeyword().Get() == KWDTP::KDO)
+			CompileDo();
+		else if (tokenizer->GetCurToken().GetKeyword().Get() == KWDTP::KRETURN)
+			CompileReturn();
+	}
+	closeXMLTag("</statements>");
 }
 
-void Sintaxer::CompileDo()
+void CompilationEngine::CompileSubroutineCall()
 {
-	WriteFile("<doStatement>");
+	if (tokenizer->GetNextToken().GetType() == TYPE::T_IDENTIFIER)
+	{
+		WriteFile(tokenizer->GetCurToken().GetTagXML());
+		if (tokenizer->GetNextToken().GetTokenName() == "(")
+		{
+			WriteFile(tokenizer->GetCurToken().GetTagXML());
+			CompileExpressionList();
+			if (tokenizer->GetCurToken().GetTokenName() == ")")
+			{
+				WriteFile(tokenizer->GetCurToken().GetTagXML());
+				WriteFile(tokenizer->GetNextToken().GetTagXML());
+				tokenizer->GetNextToken();
+			}
+		}
+	}
+}
+void CompilationEngine::CompileDo()
+{
+	openXMLTag("<doStatement>");
 	WriteFile(tokenizer->GetCurToken().GetTagXML());
 	if (tokenizer->GetNextToken().GetType() == TYPE::T_IDENTIFIER)
 	{
@@ -304,21 +296,7 @@ void Sintaxer::CompileDo()
 		if (tokenizer->GetNextToken().GetTokenName() == ".")
 		{
 			WriteFile(tokenizer->GetCurToken().GetTagXML());
-			if (tokenizer->GetNextToken().GetType() == TYPE::T_IDENTIFIER)
-			{
-				WriteFile(tokenizer->GetCurToken().GetTagXML());
-				if (tokenizer->GetNextToken().GetTokenName() == "(")
-				{
-					WriteFile(tokenizer->GetCurToken().GetTagXML());
-					CompileExpressionList();
-					if (tokenizer->GetCurToken().GetTokenName() == ")")
-					{
-						WriteFile(tokenizer->GetCurToken().GetTagXML());
-						WriteFile(tokenizer->GetNextToken().GetTagXML());
-						tokenizer->GetNextToken();
-					}
-				}
-			}
+			CompileSubroutineCall();
 		}
 		else if(tokenizer->GetCurToken().GetTokenName() == "(")
 		{
@@ -332,12 +310,12 @@ void Sintaxer::CompileDo()
 			}
 		}
 	}
-	WriteFile("</doStatement>");
+	closeXMLTag("</doStatement>");
 }
 
-void Sintaxer::CompileLet()
+void CompilationEngine::CompileLet()
 {
-	WriteFile("<letStatement>");
+	openXMLTag("<letStatement>");
 	WriteFile(tokenizer->GetCurToken().GetTagXML());
 	if (tokenizer->GetNextToken().GetType() == TYPE::T_IDENTIFIER)
 	{
@@ -345,60 +323,54 @@ void Sintaxer::CompileLet()
 		tokenizer->GetNextToken();
 		if (tokenizer->GetCurToken().GetTokenName() == "=")
 		{
-			WriteFile(tokenizer->GetCurToken().GetTagXML());
-			CompileExpression();
-			//tokenizer->GetCurToken().dump();
-			if (tokenizer->GetNextToken().GetTokenName() == ";")
-			{
-				WriteFile(tokenizer->GetCurToken().GetTagXML());
-				tokenizer->GetNextToken();
-			}
+			CompileLetAssignments();
 		}
 		else if(tokenizer->GetCurToken().GetTokenName() == "[")
 		{
 			WriteFile(tokenizer->GetCurToken().GetTagXML());
 			CompileExpression();
-			//tokenizer->GetCurToken().dump();
 			if (tokenizer->GetCurToken().GetTokenName() == "]")
 			{
 				WriteFile(tokenizer->GetCurToken().GetTagXML());
 				tokenizer->GetNextToken();
 				if (tokenizer->GetCurToken().GetTokenName() == "=")
 				{
-					WriteFile(tokenizer->GetCurToken().GetTagXML());
-					CompileExpression();
-					//tokenizer->GetCurToken().dump();
-					if (tokenizer->GetNextToken().GetTokenName() == ";")
-					{
-						WriteFile(tokenizer->GetCurToken().GetTagXML());
-						tokenizer->GetNextToken();
-					}
+					CompileLetAssignments();
 				}
 			}
 		}
 	}
-	WriteFile("</letStatement>");	
+	closeXMLTag("</letStatement>");	
 }
 
-void Sintaxer::CompileReturn()
+void CompilationEngine::CompileLetAssignments()
 {
-	//printf("compile return\n");
-	WriteFile("<returnStatement>");
+	WriteFile(tokenizer->GetCurToken().GetTagXML());
+	CompileExpression();
+	if (tokenizer->GetNextToken().GetTokenName() == ";")
+	{
+		WriteFile(tokenizer->GetCurToken().GetTagXML());
+		tokenizer->GetNextToken();
+	}
+}
+
+void CompilationEngine::CompileReturn()
+{
+	openXMLTag("<returnStatement>");
 	WriteFile(tokenizer->GetCurToken().GetKeyword().GetTagXML());
-	//tokenizer->GetNextToken();
 	if (tokenizer->GetCurToken().GetType() == TYPE::T_KEYWORDS) {
 		CompileExpression();
 	}
 	else {
 		WriteFile(tokenizer->GetNextToken().GetTagXML());
 	}
-	WriteFile("</returnStatement>");
+	closeXMLTag("</returnStatement>");
 		
 }
 
-void Sintaxer::CompileIf()
+void CompilationEngine::CompileIf()
 {
-	WriteFile("<ifStatement>");
+	openXMLTag("<ifStatement>");
 	WriteFile(tokenizer->GetCurToken().GetTagXML());
 	if (tokenizer->GetNextToken().GetTokenName() == "(") {
 		WriteFile(tokenizer->GetCurToken().GetTagXML());
@@ -427,13 +399,13 @@ void Sintaxer::CompileIf()
 			}
 		}
 	}
-	WriteFile("</ifStatement>");
+	closeXMLTag("</ifStatement>");
 
 }
 
-void Sintaxer::CompileWhile()
+void CompilationEngine::CompileWhile()
 {
-	WriteFile("<whileStatement>");
+	openXMLTag("<whileStatement>");
 	WriteFile(tokenizer->GetCurToken().GetTagXML());
 	if (tokenizer->GetNextToken().GetTokenName() == "(") {
 		WriteFile(tokenizer->GetCurToken().GetTagXML());
@@ -453,18 +425,17 @@ void Sintaxer::CompileWhile()
 			}
 		}
 	}
-	WriteFile("</whileStatement>");
+	closeXMLTag("</whileStatement>");
 }
 
 
-void Sintaxer::CompileExpression()
+void CompilationEngine::CompileExpression()
 {
-
 	while (tokenizer->GetNextToken().IsTerm()) {
-		WriteFile("<expression>");
+		openXMLTag("<expression>");
 		CompileTerm();
-		WriteFile("</expression>");
-		//tokenizer->GetCurToken().dump();
+		closeXMLTag("</expression>");
+
 		if (tokenizer->GetCurToken().GetTokenName() == ",")
 		{
 			WriteFile(tokenizer->GetCurToken().GetTagXML());
@@ -482,14 +453,13 @@ void Sintaxer::CompileExpression()
 	}
 }
 
-void Sintaxer::CompileTerm()
+void CompilationEngine::CompileTerm()
 {
 	//integerConstant | stringConstant | keywordConstant | varName | varName '[' expression ']' | subroutineCall | '(' expression ')' | unaryOp term
 	if (tokenizer->GetCurToken().IsTerm()) {
 		while (tokenizer->GetCurToken().IsTerm())
 		{
-			//if(!tokenizer->GetCurToken().IsOp())
-			WriteFile("<term>");
+			openXMLTag("<term>");
 			WriteFile(tokenizer->GetCurToken().GetTagXML());
 
 			tokenizer->GetNextToken();
@@ -506,13 +476,13 @@ void Sintaxer::CompileTerm()
 						if (tokenizer->GetCurToken().GetTokenName() == ";" || tokenizer->GetCurToken().GetTokenName() == ")")
 						{
 							WriteFile(tokenizer->GetCurToken().GetTagXML());
-							WriteFile("</term>");
+							closeXMLTag("</term>");
 						}
 					}
 				}
 			}
 			else if (tokenizer->GetCurToken().IsOp()) {
-				WriteFile("</term>");
+				closeXMLTag("</term>");
 				WriteFile(tokenizer->GetCurToken().GetTagXML());
 				tokenizer->GetNextToken();
 			}
@@ -522,32 +492,32 @@ void Sintaxer::CompileTerm()
 				if (tokenizer->GetCurToken().GetTokenName() == "]")
 				{
 					WriteFile(tokenizer->GetCurToken().GetTagXML());
-					WriteFile("</term>" );
+					closeXMLTag("</term>" );
 				}
 			}
 
 			else if (tokenizer->GetCurToken().GetTokenName() == "(" )
 			{
-				WriteFile("<term>");
+				openXMLTag("<term>");
 				WriteFile(tokenizer->GetCurToken().GetTagXML());
 				CompileExpression();
 				WriteFile(tokenizer->GetCurToken().GetTagXML());
-				WriteFile("</term>");
+				closeXMLTag("</term>");
 				if(tokenizer->GetCurToken().GetTokenName() == ")")
-					WriteFile("</term>");
+					closeXMLTag("</term>");
 
 				tokenizer->GetNextToken();
 			}
 			else if(tokenizer->GetCurToken().GetType() == TYPE::T_IDENTIFIER){
 				CompileTerm();
-				WriteFile("</term>");
+				closeXMLTag("</term>");
 			}
 		
 			else if (tokenizer->GetCurToken().GetTokenName() == "=") {
 				CompileTerm();
 			}
 			else 
-				WriteFile("</term>");
+				closeXMLTag("</term>");
 		}
 	}
 	else {
@@ -555,17 +525,29 @@ void Sintaxer::CompileTerm()
 	}
 }
 
-void Sintaxer::CompileExpressionList()
+
+
+void CompilationEngine::CompileExpressionList()
 {
-	WriteFile("<expressionList>");
+	openXMLTag("<expressionList>");
 	CompileExpression();
-	WriteFile("</expressionList>");
+	closeXMLTag("</expressionList>");
 	
 }
 
-void Sintaxer::WriteFile(std::string str)
+void CompilationEngine::WriteFile(std::string str)
 {
-	fprintf(m_output, "%s\n", str.c_str());
-	printf("%s\n", str.c_str());
-	//count++;
+	fprintf(m_output, "%s%s\n", std::string(m_spaces * 2, ' ').c_str() , str.c_str());
+	printf("%s%s\n", std::string(m_spaces * 2, ' ').c_str() , str.c_str());
+}
+
+void CompilationEngine::openXMLTag(std::string str)
+{
+	WriteFile(str);
+	m_spaces++;
+}
+void CompilationEngine::closeXMLTag(std::string str)
+{
+	m_spaces--;
+	WriteFile(str);
 }

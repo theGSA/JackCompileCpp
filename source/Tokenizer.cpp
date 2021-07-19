@@ -12,16 +12,6 @@ Tokenizer::Tokenizer(const char* nomearq):
 	Load();
 }
 
-//bool ETipoVariavel(const char* str)
-//{
-//	char* tipos[] = {"class","field","var", "int", "char", "boolean","do", "void", NULL};
-//
-//	for (int i = 0; tipos[i] != NULL; i++)
-//		if (strcmp(str, tipos[i]) == 0)
-//			return true;
-//
-//	return false;
-//}
 
 void Tokenizer::FormatTokenName(const char* str, char* dest)
 {
@@ -32,7 +22,6 @@ void Tokenizer::FormatTokenName(const char* str, char* dest)
 		}
 		else {
 			sprintf(dest, "%s %s\"", str, strtok(NULL, "\""));
-			//strcpy(dest, buffer);
 		}
 	}
 	else
@@ -104,10 +93,7 @@ Token Tokenizer::GetNextToken()
 	{
 		if (ch == ' ')
 		{
-			while ((ch = getc(m_arq)) != EOF && ch == ' ')
-			{
-
-			}
+			while ((ch = getc(m_arq)) != EOF && ch == ' ');
 		}
 		if (ch == '/' || comsimples || commultiplo)
 		{

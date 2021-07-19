@@ -1,2 +1,0 @@
-C:\Users\Gildson\Desktop\AnalizadorLexico\Release\AnalizadorLexico.exe
-D:\GameDev\JackCompileCpp\Release\AnalizadorLexico.exe

@@ -4,24 +4,20 @@
 #include "stdafx.h"
 #include "Tokenizer.h"
 #include "LexerXML.h"
-#include "Sintaxer.h"
+#include "CompileEngine.h"
 
 int main(int argc, char* argv[])
 {
-	unsigned i = 0;
-	//Tokenizer Token();
+	unsigned char i = 0;
 
 	if (argc < 2) {
 		printf("inicializacao sem linha de comando\n");
 		return 0;
 	}
-	//char* file = "SquareGame.jack";
-	//Lexer lexer(argv[1]);
 	Lexer lexer(argv[1]);
-	//Tokenizer Token2("Square.jack");
-	Sintaxer  sintaxer(argv[1]);
+
+	CompilationEngine sintaxer(argv[1]);
 	printf("pressione quaquer tecla para sair\n");
 	i = getchar();	
 	return 0;
 }
-

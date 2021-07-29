@@ -7,7 +7,9 @@
 
 
 Tokenizer::Tokenizer(const char* nomearq):
-	m_filename(nomearq)
+	m_filename(nomearq),
+	m_Col(0),
+	m_Lin(0)
 {
 	Load();
 }
@@ -79,7 +81,6 @@ Token Tokenizer::GetNextToken()
 	bool aspas = false;
 	char* aux;
 	char ultchar = 0;
-	int line = 0;
 
 	buffer = (char*)malloc(2048 * sizeof(char) + 1);
 	if (!buffer)
@@ -109,7 +110,8 @@ Token Tokenizer::GetNextToken()
 		if (ch == '\n') {
 			if (comsimples)
 				comsimples = false;
-			line++;
+			m_Lin++;
+			m_Col = 0;
 		}
 
 		if (commultiplo && (ch == '*')) {
@@ -132,8 +134,11 @@ Token Tokenizer::GetNextToken()
 			{
 				*aux = 0;
 				Token temp = Token(buffer);
-
+				temp.m_line = m_Lin + 1;
+				temp.m_collumn = m_Col++;
 				m_currentToken = temp;
+				
+				PeekToken();
 				free(buffer);
 				return m_currentToken;
 			}
@@ -144,6 +149,23 @@ Token Tokenizer::GetNextToken()
 	return Token();
 }
 
+void Tokenizer::PeekToken()
+{
+	std::string peek;
+	int pos = ftell(m_arq);
+	int tline = m_Lin;
+	int tcol = m_Col;
+
+	Token aux = m_currentToken;
+	peek = GetNextToken().GetRealName();
+	m_currentToken = aux;
+
+	fseek(m_arq, pos, SEEK_SET);
+	m_Lin = tline;
+	m_Col = tcol;
+	m_peekToken = Token(peek.c_str());
+	//return m_peekToken;
+}
 void Tokenizer::Load()
 {
 

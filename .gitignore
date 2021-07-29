@@ -14,3 +14,7 @@
 *.log
 Release/AnalizadorLexico.vcxproj.FileListAbsolute.txt
 Release/AnalizadorLexico.vcxproj.FileListAbsolute.txt
+*.iobj
+*.ipdb
+*.recipe
+*.txt

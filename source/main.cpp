@@ -1,4 +1,4 @@
-// AnalizadorLexico.cpp : Defines the entry point for the console application.
+// main.cpp : Defines the entry point for the console application.
 //
 
 #include "stdafx.h"
@@ -12,11 +12,12 @@ int main(int argc, char* argv[])
 
 	if (argc < 2) {
 		printf("inicializacao sem linha de comando\n");
-		return 0;
 	}
-	Lexer lexer(argv[1]);
-
-	CompilationEngine sintaxer(argv[1]);
+	else {
+		//std::string cmd("JoinLess.jack");
+		Lexer lexer(argv[1]);
+		CompileEngine sintaxer(argv[1]);
+	}
 	printf("pressione quaquer tecla para sair\n");
 	i = getchar();	
 	return 0;

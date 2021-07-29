@@ -1,9 +1,9 @@
 
 #pragma once
 #include "stdafx.h"
-
 #include "token.h"
 #include "Tokenizer.h"
+
 const char* keywords[] =
 {
 	"class",
@@ -46,7 +46,9 @@ const char* simbolos[] = { "{","}","(",")","[","]",".",",",";","+","-","","*","&
 Token::Token():
 	nometoken(""),
 	type(TYPE::T_UNDEFINED),
-	m_keyword(Keyword())
+	m_keyword(Keyword()),
+	m_collumn(0),
+	m_line(0)
 {
 }
 Token::Token(std::string strname)

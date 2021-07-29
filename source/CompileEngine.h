@@ -2,19 +2,19 @@
 #include <string>
 #include "Tokenizer.h"
 
-class  CompilationEngine
+class  CompileEngine
 {
 public:
-	 CompilationEngine();
-	 CompilationEngine(std::string filename);
-	~ CompilationEngine();
+	 CompileEngine();
+	 CompileEngine(std::string filename);
+	~ CompileEngine();
 
 private:
 	FILE* m_output;
 	Tokenizer* tokenizer;
 	std::string m_filename;
-
 	int m_spaces;
+	
 	void Compile();
 	void CompileClass();
 	void CompileClassVarDec();
@@ -36,6 +36,7 @@ private:
 	void CompileExpressionList();
 	void WriteFile(std::string str);
 	//
+	void Eat(std::string str);
 	void openXMLTag(std::string str);
 	void closeXMLTag(std::string str);
 };

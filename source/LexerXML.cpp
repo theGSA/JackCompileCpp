@@ -13,8 +13,8 @@ Lexer::Lexer(const char* filename) :
 		fputs("<tokens>\n", arq);
 		while (token.GetNextToken().IsValid())
 		{
-			printf("<%s> %s </%s>\n", token.GetTypeName().c_str(), token.GetRealName().c_str(), token.GetTypeName().c_str());
-			fprintf(arq, "<%s> %s </%s>\n", token.GetCurToken().GetTypeName().c_str(), token.GetCurToken().GetRealName().c_str(), token.GetCurToken().GetTypeName().c_str());
+			printf("<%s> %s </%s>\n", token.GetTypeName().c_str(), token.GetTokenName().c_str(), token.GetTypeName().c_str());
+			fprintf(arq, "<%s> %s </%s>\n", token.GetCurToken().GetTypeName().c_str(), token.GetCurToken().GetTokenName().c_str(), token.GetCurToken().GetTypeName().c_str());
 		}
 		fputs("</tokens>\n", arq);
 		fclose(arq);

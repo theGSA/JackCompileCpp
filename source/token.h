@@ -95,7 +95,7 @@ public:
 	std::string nometoken;
 	Token();
 	Token(std::string strname);
-	//KWDTP Keyword() { return m_keyword; };
+
 	bool IsValid() { return type != TYPE::T_UNDEFINED ? true : false; };
 	TYPE GetType() {
 		return type;
@@ -115,6 +115,8 @@ public:
 		return "<"+GetTypeName() + "> " + GetTokenName() + " </" + GetTypeName()+">";
 	}
 	bool IsOp();
+	int m_collumn;
+	int m_line;
 protected:
 
 	bool IsSymbol(char ch);

@@ -97,7 +97,7 @@ TYPE Token::GetTokenType(const char* str)
 
 bool Token::IsOp()
 {
-	std::string  op = "+-*/&|<>=";
+	std::string  op = "+-*/&|<>=~";
 
 	for (int i = 0; op[i] != 0; i++) {
 		if (op.substr(i, 1) == GetRealName())

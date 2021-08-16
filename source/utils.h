@@ -30,5 +30,12 @@ namespace Utils {
 
 		return temp.replace(temp.rfind(".jack"), 6, ".xml");
 	}
+
+	inline std::string GetVMFileName(const std::string filename)
+	{
+		std::string temp = filename;
+
+		return temp.replace(temp.rfind(".jack"), 5, ".vm");
+	}
 }
 #endif // ! _UTILS_H

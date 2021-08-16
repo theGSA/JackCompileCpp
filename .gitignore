@@ -18,3 +18,5 @@ Release/AnalizadorLexico.vcxproj.FileListAbsolute.txt
 *.ipdb
 *.recipe
 *.txt
+.vs/JackCompileCpp/v14/.suo
+JackCompileCpp.rar

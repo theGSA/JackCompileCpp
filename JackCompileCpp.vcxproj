@@ -89,6 +89,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CONSOLE;_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>.\includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -104,6 +105,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CONSOLE;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>.\includes;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -145,20 +147,29 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="source\CompileEngine.cpp" />
+    <ClCompile Include="source\JackCompiler.cpp" />
     <ClCompile Include="source\LexerXML.cpp" />
     <ClCompile Include="source\main.cpp" />
     <ClCompile Include="source\stdafx.cpp" />
+    <ClCompile Include="source\SymbolTable.cpp" />
     <ClCompile Include="source\token.cpp" />
     <ClCompile Include="source\Tokenizer.cpp" />
+    <ClCompile Include="source\VMWriter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\CompileEngine.h" />
+    <ClInclude Include="source\JackCompiler.h" />
     <ClInclude Include="source\LexerXML.h" />
     <ClInclude Include="source\stdafx.h" />
+    <ClInclude Include="source\SymbolTable.h" />
     <ClInclude Include="source\targetver.h" />
     <ClInclude Include="source\token.h" />
     <ClInclude Include="source\Tokenizer.h" />
     <ClInclude Include="source\utils.h" />
+    <ClInclude Include="source\VMWriter.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
